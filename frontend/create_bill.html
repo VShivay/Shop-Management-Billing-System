@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Bill</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #f3f4f6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 900px;
+        }
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        input[type="time"] {
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            width: 100%;
+            transition: all 0.2s ease-in-out;
+        }
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="date"]:focus,
+        input[type="time"]:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+        .suggestion-dropdown {
+            position: absolute;
+            z-index: 10;
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            width: calc(100% - 2px); /* Adjust for border */
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 4px;
+        }
+        .suggestion-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+        .suggestion-item:hover {
+            background-color: #f3f4f6;
+        }
+        button {
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+        }
+        button:hover {
+            transform: translateY(-1px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .message-box {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+        .message-box.success {
+            background-color: #d1fae5; /* Green-100 */
+            color: #065f46; /* Green-700 */
+        }
+        .message-box.error {
+            background-color: #fee2e2; /* Red-100 */
+            color: #991b1b; /* Red-700 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="container">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Create New Bill</h1>
+
+        <div id="message-box" class="message-box hidden"></div>
+
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Bill Type:</label>
+            <div class="flex items-center space-x-4">
+                <label class="inline-flex items-center">
+                    <input type="radio" name="billType" value="retail" checked class="form-radio h-5 w-5 text-blue-600 rounded-full" onchange="toggleCustomerSection()">
+                    <span class="ml-2 text-gray-700">Retail</span>
+                </label>
+                <label class="inline-flex items-center">
+                    <input type="radio" name="billType" value="wholesale" class="form-radio h-5 w-5 text-blue-600 rounded-full" onchange="toggleCustomerSection()">
+                    <span class="ml-2 text-gray-700">Wholesale</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Customer Search Section (for Wholesale) -->
+        <div id="customerSection" class="mb-6 hidden">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Customer Details</h2>
+            <div class="relative mb-4">
+                <label for="customerSearch" class="block text-gray-700 text-sm font-bold mb-2">Search Customer (Name/Mobile):</label>
+                <input type="text" id="customerSearch" placeholder="Enter customer name or mobile number..." class="w-full">
+                <div id="customerSuggestions" class="suggestion-dropdown"></div>
+            </div>
+            <div id="selectedCustomerDisplay" class="text-gray-600 text-sm p-3 bg-gray-50 rounded-md">
+                No customer selected.
+            </div>
+            <input type="hidden" id="selectedCustomerId">
+        </div>
+
+        <!-- Product Search Section -->
+        <h2 class="text-xl font-semibold text-gray-700 mb-4">Select Products</h2>
+        <div class="relative mb-6">
+            <label for="productSearch" class="block text-gray-700 text-sm font-bold mb-2">Search Product:</label>
+            <input type="text" id="productSearch" placeholder="Search by product name..." class="w-full">
+            <div id="productSuggestions" class="suggestion-dropdown"></div>
+        </div>
+
+        <!-- Selected Products List -->
+        <div class="mb-6 border border-gray-200 rounded-lg overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="selectedProductsTable" class="bg-white divide-y divide-gray-200">
+                    <!-- Products will be added here dynamically -->
+                </tbody>
+            </table>
+            <div id="noProductsMessage" class="p-4 text-center text-gray-500">No products selected yet.</div>
+        </div>
+
+        <!-- Bill Summary -->
+        <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <h2 class="text-xl font-semibold text-blue-700 mb-4">Bill Summary</h2>
+            <div class="flex justify-between items-center mb-2">
+                <span class="font-medium text-gray-700">Total Amount:</span>
+                <span id="totalAmount" class="text-xl font-bold text-blue-800">0.00</span>
+            </div>
+            <div class="mb-4">
+                <label for="paidAmount" class="block text-gray-700 text-sm font-bold mb-2">Paid Amount:</label>
+                <input type="number" id="paidAmount" value="0.00" step="0.01" min="0" class="w-full" oninput="calculateDue()">
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="font-medium text-gray-700">Due Amount:</span>
+                <span id="dueAmount" class="text-xl font-bold text-red-600">0.00</span>
+            </div>
+        </div>
+
+        <div class="flex justify-center">
+            <button id="createBillBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md">
+                Create Bill
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://192.168.31.120:3000/api'; // Make sure this matches your Node.js server URL
+        const token = localStorage.getItem('token'); // Get JWT token from local storage
+
+        const productSearchInput = document.getElementById('productSearch');
+        const productSuggestionsDiv = document.getElementById('productSuggestions');
+        const selectedProductsTable = document.getElementById('selectedProductsTable');
+        const noProductsMessage = document.getElementById('noProductsMessage');
+
+        const customerSection = document.getElementById('customerSection');
+        const customerSearchInput = document.getElementById('customerSearch');
+        const customerSuggestionsDiv = document.getElementById('customerSuggestions');
+        const selectedCustomerDisplay = document.getElementById('selectedCustomerDisplay');
+        const selectedCustomerIdInput = document.getElementById('selectedCustomerId');
+
+        const totalAmountSpan = document.getElementById('totalAmount');
+        const paidAmountInput = document.getElementById('paidAmount');
+        const dueAmountSpan = document.getElementById('dueAmount');
+        const createBillBtn = document.getElementById('createBillBtn');
+        const messageBox = document.getElementById('message-box');
+
+        let selectedProducts = []; // Stores products selected for the bill {id, name, type, unit, retail_price, wholesale_price, quantity_sold, current_stock}
+        let selectedCustomer = null; // Stores selected customer {id, name, mobile_no}
+
+        // --- Authentication Check ---
+        if (!token) {
+            // Redirect to login page if no token is found
+            // Assuming your login page is named login.html in the same directory
+            window.location.href = 'login.html'; // Ensure you have a login.html
+        }
+
+        // --- Helper Functions ---
+        function showMessage(message, type) {
+            messageBox.textContent = message;
+            messageBox.className = `message-box ${type}`;
+            messageBox.classList.remove('hidden');
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 5000); // Hide after 5 seconds
+        }
+
+        // Debounce function to limit API calls on input
+        function debounce(func, delay) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), delay);
+            };
+        }
+
+        // --- Bill Type Toggle ---
+        function toggleCustomerSection() {
+            const billType = document.querySelector('input[name="billType"]:checked').value;
+            if (billType === 'wholesale') {
+                customerSection.classList.remove('hidden');
+                // Ensure customer is cleared if switching from retail to wholesale
+                selectedCustomer = null;
+                selectedCustomerIdInput.value = '';
+                selectedCustomerDisplay.textContent = 'No customer selected.';
+                customerSearchInput.value = '';
+                customerSuggestionsDiv.innerHTML = '';
+            } else {
+                customerSection.classList.add('hidden');
+                selectedCustomer = null;
+                selectedCustomerIdInput.value = '';
+                selectedCustomerDisplay.textContent = 'No customer selected.';
+                customerSearchInput.value = '';
+                customerSuggestionsDiv.innerHTML = '';
+            }
+            // Recalculate prices based on bill type for already selected products
+            renderSelectedProducts();
+            calculateTotal();
+        }
+
+        // --- Product Search and Selection ---
+        const fetchProductSuggestions = debounce(async (searchTerm) => {
+            productSuggestionsDiv.innerHTML = ''; // Clear previous suggestions
+            if (searchTerm.length < 2) { // Require at least 2 characters to search
+                productSuggestionsDiv.classList.add('hidden');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/products`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ name: searchTerm })
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                        showMessage('Session expired. Please log in again.', 'error');
+                        localStorage.removeItem('token');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (data.products && data.products.length > 0) {
+                    productSuggestionsDiv.classList.remove('hidden');
+                    data.products.forEach(product => {
+                        // Check if product is already selected
+                        const isAlreadySelected = selectedProducts.some(p => p.id === product.id);
+                        const suggestionItem = document.createElement('div');
+                        suggestionItem.className = `suggestion-item ${isAlreadySelected ? 'opacity-50 cursor-not-allowed' : ''}`;
+                        suggestionItem.innerHTML = `
+                            <div>${product.name} (${product.type === 'piece' ? 'Pcs' : 'Weight'})</div>
+                            <div class="text-sm text-gray-500">Stock: ${product.quantity} ${product.unit}</div>
+                        `;
+                        if (!isAlreadySelected) {
+                            suggestionItem.onclick = () => selectProduct(product);
+                        }
+                        productSuggestionsDiv.appendChild(suggestionItem);
+                    });
+                } else {
+                    productSuggestionsDiv.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Error fetching product suggestions:', error);
+                showMessage('Failed to fetch product suggestions.', 'error');
+            }
+        }, 300); // 300ms debounce
+
+        productSearchInput.addEventListener('input', (e) => {
+            fetchProductSuggestions(e.target.value.trim());
+        });
+
+        // Hide product suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!productSuggestionsDiv.contains(e.target) && e.target !== productSearchInput) {
+                productSuggestionsDiv.classList.add('hidden');
+            }
+        });
+
+        function selectProduct(product) {
+            // Check if product is already in the list
+            if (selectedProducts.some(p => p.id === product.id)) {
+                showMessage('Product already added to the list.', 'error');
+                return;
+            }
+
+            // IMPORTANT FIX: Ensure numerical values are parsed as floats
+            selectedProducts.push({
+                id: product.id,
+                name: product.name,
+                type: product.type,
+                unit: product.unit,
+                retail_price: parseFloat(product.retail_price), // Parse as float
+                wholesale_price: parseFloat(product.wholesale_price), // Parse as float
+                quantity_sold: 1, // Default quantity
+                current_stock: parseFloat(product.quantity) // Parse as float
+            });
+            productSearchInput.value = ''; // Clear search input
+            productSuggestionsDiv.classList.add('hidden'); // Hide suggestions
+            renderSelectedProducts();
+            calculateTotal();
+            showMessage(`Added ${product.name} to the bill.`, 'success');
+        }
+
+        function renderSelectedProducts() {
+            selectedProductsTable.innerHTML = ''; // Clear table
+            if (selectedProducts.length === 0) {
+                noProductsMessage.classList.remove('hidden');
+                return;
+            }
+            noProductsMessage.classList.add('hidden');
+
+            const billType = document.querySelector('input[name="billType"]:checked').value;
+
+            selectedProducts.forEach(product => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+
+                // Price is now guaranteed to be a number due to parseFloat in selectProduct
+                const price = billType === 'retail' ? product.retail_price : product.wholesale_price;
+                const itemTotalPrice = (product.quantity_sold * price).toFixed(2);
+
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        ${product.name}
+                        <div class="text-xs text-gray-500">${product.type === 'piece' ? 'Pcs' : 'Weight'} (${product.unit})</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <input type="number"
+                                class="w-24 text-center px-2 py-1 border rounded-md"
+                                value="${product.quantity_sold}"
+                                min="0.01"
+                                step="${product.type === 'weight' ? '0.01' : '1'}"
+                                data-product-id="${product.id}"
+                                oninput="updateProductQuantity(this)"
+                                onfocus="this.select()">
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $${price.toFixed(2)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold item-total" data-product-id="${product.id}">
+                        $${itemTotalPrice}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button onclick="removeProduct(${product.id})"
+                                class="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 p-2 rounded-md transition-colors">
+                            Remove
+                        </button>
+                    </td>
+                `;
+                selectedProductsTable.appendChild(row);
+            });
+        }
+
+        function updateProductQuantity(inputElement) {
+            const productId = parseInt(inputElement.dataset.productId);
+            let newQuantity = parseFloat(inputElement.value);
+
+            if (isNaN(newQuantity) || newQuantity <= 0) {
+                newQuantity = 0.01; // Default to a minimum valid quantity
+                inputElement.value = newQuantity;
+            }
+
+            const productIndex = selectedProducts.findIndex(p => p.id === productId);
+            if (productIndex !== -1) {
+                const product = selectedProducts[productIndex];
+                // Basic client-side validation against current_stock
+                if (newQuantity > product.current_stock) {
+                    showMessage(`Quantity for ${product.name} exceeds available stock (${product.current_stock} ${product.unit}).`, 'error');
+                    inputElement.value = product.current_stock;
+                    newQuantity = product.current_stock;
+                }
+                product.quantity_sold = newQuantity;
+
+                const billType = document.querySelector('input[name="billType"]:checked').value;
+                const price = billType === 'retail' ? product.retail_price : product.wholesale_price;
+                const itemTotalPrice = (product.quantity_sold * price).toFixed(2);
+                document.querySelector(`.item-total[data-product-id="${productId}"]`).textContent = `$${itemTotalPrice}`;
+
+                calculateTotal();
+            }
+        }
+
+        function removeProduct(productId) {
+            selectedProducts = selectedProducts.filter(p => p.id !== productId);
+            renderSelectedProducts();
+            calculateTotal();
+            showMessage('Product removed from bill.', 'success');
+        }
+
+        // --- Customer Search and Selection ---
+        const fetchCustomerSuggestions = debounce(async (searchTerm) => {
+            customerSuggestionsDiv.innerHTML = ''; // Clear previous suggestions
+            if (searchTerm.length < 2) {
+                customerSuggestionsDiv.classList.add('hidden');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/customers`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ name: searchTerm, mobile_no: searchTerm }) // Search by both name and mobile_no
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                        showMessage('Session expired. Please log in again.', 'error');
+                        localStorage.removeItem('token');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (data.customers && data.customers.length > 0) {
+                    customerSuggestionsDiv.classList.remove('hidden');
+                    data.customers.forEach(customer => {
+                        const suggestionItem = document.createElement('div');
+                        suggestionItem.className = 'suggestion-item';
+                        suggestionItem.innerHTML = `
+                            <div>${customer.name}</div>
+                            <div class="text-sm text-gray-500">${customer.mobile_no}</div>
+                        `;
+                        suggestionItem.onclick = () => selectCustomer(customer);
+                        customerSuggestionsDiv.appendChild(suggestionItem);
+                    });
+                } else {
+                    // Option to create new customer if not found
+                    const createNewOption = document.createElement('div');
+                    createNewOption.className = 'suggestion-item text-blue-600 font-semibold';
+                    createNewOption.textContent = `No customer found. Create new with "${searchTerm}"?`;
+                    createNewOption.onclick = () => createNewCustomerFromSearch(searchTerm);
+                    customerSuggestionsDiv.appendChild(createNewOption);
+                    customerSuggestionsDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error fetching customer suggestions:', error);
+                showMessage('Failed to fetch customer suggestions.', 'error');
+            }
+        }, 300);
+
+        customerSearchInput.addEventListener('input', (e) => {
+            fetchCustomerSuggestions(e.target.value.trim());
+        });
+
+        // Hide customer suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!customerSuggestionsDiv.contains(e.target) && e.target !== customerSearchInput) {
+                customerSuggestionsDiv.classList.add('hidden');
+            }
+        });
+
+        function selectCustomer(customer) {
+            selectedCustomer = customer;
+            selectedCustomerIdInput.value = customer.id;
+            selectedCustomerDisplay.innerHTML = `
+                <p><strong>Name:</strong> ${customer.name}</p>
+                <p><strong>Mobile:</strong> ${customer.mobile_no}</p>
+            `;
+            customerSearchInput.value = customer.name; // Set input to selected customer's name
+            customerSuggestionsDiv.classList.add('hidden');
+            showMessage(`Selected customer: ${customer.name}`, 'success');
+        }
+
+        function createNewCustomerFromSearch(searchTerm) {
+            // For now, we'll assume the searchTerm can be parsed as name/mobile or just name.
+            // In a real app, you might prompt for both name and mobile if only one is provided.
+            // For simplicity, we'll try to guess.
+            const isMobile = /^\d+$/.test(searchTerm) && searchTerm.length >= 10;
+            const newCustomerName = isMobile ? 'New Customer' : searchTerm; // Placeholder if only mobile
+            const newCustomerMobile = isMobile ? searchTerm : ''; // Placeholder if only name
+
+            // Set placeholder, customer will be created on bill submission via findOrCreateCustomer on backend
+            selectedCustomer = { id: null, name: newCustomerName, mobile_no: newCustomerMobile || searchTerm };
+            selectedCustomerIdInput.value = ''; // No ID yet, will be created on bill
+            selectedCustomerDisplay.innerHTML = `
+                <p><strong>New Customer:</strong> ${newCustomerName}</p>
+                <p><strong>Mobile:</strong> ${newCustomerMobile || searchTerm} (will be created)</p>
+            `;
+            customerSearchInput.value = newCustomerName;
+            customerSuggestionsDiv.classList.add('hidden');
+            showMessage(`Preparing to create new customer: ${newCustomerName} (${newCustomerMobile || searchTerm}).`, 'info');
+        }
+
+
+        // --- Calculation Logic ---
+        function calculateTotal() {
+            let total = 0;
+            const billType = document.querySelector('input[name="billType"]:checked').value;
+
+            selectedProducts.forEach(product => {
+                const price = billType === 'retail' ? product.retail_price : product.wholesale_price;
+                total += product.quantity_sold * price;
+            });
+
+            totalAmountSpan.textContent = total.toFixed(2);
+            calculateDue();
+        }
+
+        function calculateDue() {
+            const total = parseFloat(totalAmountSpan.textContent);
+            const paid = parseFloat(paidAmountInput.value) || 0; // Default to 0 if empty or invalid
+            const billType = document.querySelector('input[name="billType"]:checked').value;
+
+            let due = 0;
+            if (billType === 'wholesale') {
+                due = Math.max(0, total - paid);
+            } else {
+                due = 0; // Retail bills have no outstanding due in this system's definition
+            }
+            dueAmountSpan.textContent = due.toFixed(2);
+        }
+
+        // --- Create Bill Submission ---
+        createBillBtn.addEventListener('click', async () => {
+            const billType = document.querySelector('input[name="billType"]:checked').value;
+            const productsSelectedForAPI = selectedProducts.map(p => ({
+                product_id: p.id,
+                quantity_sold: p.quantity_sold
+            }));
+            const paidAmount = parseFloat(paidAmountInput.value) || 0;
+            const totalAmount = parseFloat(totalAmountSpan.textContent);
+            const dueAmount = parseFloat(dueAmountSpan.textContent);
+
+            if (productsSelectedForAPI.length === 0) {
+                showMessage('Please add at least one product to the bill.', 'error');
+                return;
+            }
+
+            if (billType === 'wholesale' && !selectedCustomer) {
+                showMessage('Please select or create a customer for wholesale bills.', 'error');
+                return;
+            }
+
+            createBillBtn.disabled = true; // Disable button to prevent multiple submissions
+            createBillBtn.textContent = 'Creating Bill...';
+
+            const payload = {
+                bill_type: billType,
+                products_selected: productsSelectedForAPI,
+                paid_amount: paidAmount
+            };
+
+            if (billType === 'wholesale' && selectedCustomer) {
+                // For wholesale, send customer_info (name, mobile_no)
+                // The backend's findOrCreateCustomer will handle if it's a new or existing customer.
+                payload.customer_info = {
+                    name: selectedCustomer.name,
+                    mobile_no: selectedCustomer.mobile_no
+                };
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/bills/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                        showMessage('Session expired. Please log in again.', 'error');
+                        localStorage.removeItem('token');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    throw new Error(data.message || `HTTP error! status: ${response.status}`);
+                }
+
+                showMessage(`Bill created successfully! Bill ID: ${data.billId}. Total: $${data.total_amount}. Due: $${data.due_amount}`, 'success');
+
+                // Reset form after successful bill creation
+                selectedProducts = [];
+                selectedCustomer = null;
+                selectedCustomerIdInput.value = '';
+                customerSearchInput.value = '';
+                selectedCustomerDisplay.textContent = 'No customer selected.';
+                paidAmountInput.value = '0.00';
+                renderSelectedProducts();
+                calculateTotal(); // Recalculate to reset display values
+                document.querySelector('input[name="billType"][value="retail"]').checked = true;
+                toggleCustomerSection(); // Hide customer section by default
+
+            } catch (error) {
+                console.error('Error creating bill:', error);
+                showMessage(`Failed to create bill: ${error.message}`, 'error');
+            } finally {
+                createBillBtn.disabled = false;
+                createBillBtn.textContent = 'Create Bill';
+            }
+        });
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            toggleCustomerSection(); // Set initial state for customer section
+            calculateTotal(); // Initialize total and due
+        });
+
+    </script>
+</body>
+</html>

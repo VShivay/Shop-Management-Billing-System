@@ -1,0 +1,378 @@
+/* Custom CSS for Shop Dashboard */
+
+/* Base Styles */
+body {
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar Styling (for Webkit browsers) */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px; /* For horizontal scrollbars */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f0f2f5;
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
+}
+
+/* Sidebar */
+.sidebar {
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    box-shadow: 4px 0 15px rgba(0,0,0,0.2);
+    height: 100vh; /* Ensure sidebar takes full viewport height */
+}
+
+.sidebar.open {
+    transform: translateX(0) !important; /* Force open on mobile */
+}
+
+/* Main Content Wrapper */
+.main-content-wrapper {
+    margin-left: 0; /* Default for mobile */
+    transition: margin-left 0.3s ease-in-out;
+}
+
+@media (min-width: 768px) {
+    .main-content-wrapper {
+        margin-left: 256px; /* 64 (w-64) * 4px/unit = 256px */
+    }
+    .sidebar {
+        transform: translateX(0); /* Always visible on desktop */
+    }
+}
+
+/* Navigation Links */
+.nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.85rem 1.25rem;
+    border-radius: 0.75rem;
+    color: #e2e8f0;
+    font-weight: 500;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, transform 0.2s ease-in-out;
+    position: relative; /* For pseudo-elements */
+    overflow: hidden;
+}
+
+.nav-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background-color: transparent;
+    border-radius: 0 4px 4px 0;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    transform: translateX(5px);
+}
+
+.nav-link:hover::before {
+    background-color: #3b82f6; /* Blue-500 */
+}
+
+.nav-link.active {
+    background-color: #3b82f6; /* Blue-500 */
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4); /* Blue shadow */
+    transform: translateX(0); /* Reset transform for active */
+}
+
+.nav-link.active::before {
+    background-color: #2563eb; /* Darker blue for active border */
+}
+
+.nav-link i {
+    width: 24px; /* Larger fixed width for icons */
+    text-align: center;
+    font-size: 1.15rem; /* Slightly larger icons */
+}
+
+/* Main Header (for mobile) */
+.main-header {
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* Cards */
+.card {
+    background-color: #ffffff;
+    padding: 1rem;
+    border-radius: 1rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border: 1px solid #edf2f7;
+    transition: all 0.3s ease-in-out;
+}
+.card:hover {
+    border-color: #a7d9f8; /* Light blue border on hover */
+}
+
+.card .icon {
+    font-size: 3rem; /* Larger icons */
+    margin-bottom: 1rem;
+    color: #3b82f6; /* Blue-500 */
+    background: linear-gradient(45deg, #60a5fa, #3b82f6); /* Gradient icon */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1));
+}
+.card .title {
+    font-size: 1.25rem; /* Larger title */
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 0.75rem;
+}
+.card .value {
+    font-size: 2.5rem; /* Larger value */
+    font-weight: 800;
+    color: #2d3748;
+}
+
+/* Message Box */
+.message-box {
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+    text-align: center;
+    opacity: 0; /* Hidden by default for animation */
+    transform: translateY(-20px); /* Slide up animation */
+    pointer-events: none; /* Allows clicks through when hidden */
+}
+.message-box.hidden {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+.message-box:not(.hidden) {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.message-box.success {
+    background-color: #d1fae5; /* Green-100 */
+    color: #065f46; /* Green-700 */
+    border: 1px solid #34d399; /* Green-400 */
+}
+.message-box.error {
+    background-color: #fee2e2; /* Red-100 */
+    color: #991b1b; /* Red-700 */
+    border: 1px solid #f87171; /* Red-400 */
+}
+.message-box.info {
+    background-color: #e0f2fe; /* Light blue */
+    color: #0c4a6e; /* Dark blue */
+    border: 1px solid #60a5fa; /* Blue-400 */
+}
+
+/* Content Sections */
+.content-section {
+    background-color: #ffffff;
+    padding: 1rem;
+    border-radius: 1rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border: 1px solid #edf2f7;
+    margin-bottom: 0.5rem;
+    margin-top: 0rem;
+}
+
+/* Form Elements */
+.input-group {
+    margin-bottom: 1.25rem;
+}
+
+.input-label {
+    display: block;
+    margin-bottom: 0.6rem;
+    font-weight: 600;
+    color: #4a5568;
+    font-size: 0.95rem;
+}
+
+.input-field {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    border: 1px solid #cbd5e0; /* Gray-300 */
+    border-radius: 0.625rem; /* 10px */
+    box-sizing: border-box;
+    font-size: 1rem;
+    color: #2d3748;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: #3b82f6; /* Blue-500 */
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3); /* Blue-500 with 30% opacity */
+}
+
+.input-field::placeholder {
+    color: #a0aec0; /* Gray-400 */
+}
+
+/* Buttons */
+.btn-primary {
+    background: linear-gradient(90deg, #3b82f6, #2563eb); /* Blue gradient */
+    color: white;
+    padding: 0.9rem 2rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
+    transition: all 0.3s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(90deg, #2563eb, #1e40af); /* Darker blue gradient on hover */
+    box-shadow: 0 6px 15px rgba(59, 130, 246, 0.5);
+    transform: translateY(-2px);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(59, 130, 246, 0.3);
+}
+
+
+/* Tables */
+table {
+    border-collapse: separate; /* Use separate for rounded corners on cells */
+    border-spacing: 0;
+    width: 100%;
+}
+th, td {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0; /* Light gray border */
+}
+th {
+    background-color: #f7fafc; /* Lightest gray */
+    font-weight: 700; /* Bold headers */
+    color: #2d3748; /* Darker text */
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+}
+tbody tr:last-child td {
+    border-bottom: none; /* No border on last row */
+}
+tbody tr:hover {
+    background-color: #f0f2f5; /* Lighter gray on hover */
+}
+td button {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+td button.text-blue-600:hover {
+    background-color: #ebf8ff; /* Blue-50 */
+    color: #2c5282; /* Blue-800 */
+}
+td button.text-green-600:hover {
+    background-color: #f0fff4; /* Green-50 */
+    color: #2f855a; /* Green-800 */
+}
+
+
+/* Suggestion Dropdown */
+.suggestion-dropdown {
+    position: absolute;
+    z-index: 100; /* Higher z-index to appear above other content */
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    width: calc(100% - 2px); /* Adjust for border */
+    max-height: 250px; /* Taller dropdown */
+    overflow-y: auto;
+    margin-top: 0.5rem;
+    transform-origin: top;
+    animation: fadeInScale 0.2s ease-out;
+}
+
+.suggestion-item {
+    padding: 0.85rem 1.25rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color 0.2s ease-in-out;
+}
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+.suggestion-item:hover {
+    background-color: #e0f2fe; /* Light blue hover for suggestions */
+    color: #2563eb; /* Blue text on hover */
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scaleY(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scaleY(1);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+/* View Section Transition */
+.view-section {
+    display: none; /* Controlled by JS, hidden by default */
+}
+.view-section:not(.hidden) {
+    display: block; /* Show with JS */
+    /* No direct animation here, let the specific animation classes handle it */
+}

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shree Vishwakarma Krupa - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="login-style.css">
+</head>
+<body class="font-inter antialiased bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col min-h-screen text-gray-800">
+
+    <header class="w-full bg-white shadow-md py-4 px-6 flex justify-between items-center z-10">
+        <div class="flex items-center">
+            <h1 class="text-3xl font-extrabold text-blue-700 tracking-wide">Shree Vishwakarma Krupa</h1>
+        </div>
+        <div>
+            <h2 class="text-2xl font-bold text-gray-700">Login</h2>
+        </div>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center p-6">
+        <div class="login-container bg-white p-8 md:p-10 rounded-xl shadow-2xl border border-gray-100 w-full max-w-md animate-fade-in-up">
+            <p class="text-center text-gray-600 mb-8 text-lg">Enter your credentials to access the dashboard.</p>
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label for="username" class="input-label">Username:</label>
+                    <input type="text" id="username" required class="input-field" placeholder="Enter your username"/>
+                </div>
+                <div>
+                    <label for="password" class="input-label">Password:</label>
+                    <input type="password" id="password" required class="input-field" placeholder="Enter your password"/>
+                </div>
+                <button type="submit" class="btn-primary w-full">
+                    Login to Dashboard
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const BASE_URL = "http://192.168.31.120:3000"; // Your backend API base URL
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    window.location.href = 'dashboard.html';
+                } else {
+                    alert(data.message || 'Login failed');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('An error occurred during login. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>
